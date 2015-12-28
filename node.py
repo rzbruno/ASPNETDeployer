@@ -1,4 +1,5 @@
 from bottle import route, request, static_file, run
+from subprocess import call
 import zipfile
 import json
 import os
@@ -40,6 +41,33 @@ def syncAll():
     zip_ref.close()
 
     return "Done."
+
+@route('/syncOne')
+def syncOne():
+    zip_ref = zipfile.ZipFile(DLLS_PATH, 'r')
+
+    applicationName = request.query.applicationName
+
+    if applicationName != "":
+        zip_ref.extractall(applicationName + '/bin/')
+
+    zip_ref.close()
+
+    return "Done."
+
+@route('/deployApplication')
+def deployApplication():
+
+    name = request.query.applicationName
+
+    cmd = "appcmd add app /site.name: {0} /path: {1} /physicalPath: {2}".format(name, name, APPLICATION_PATH + "\\" + name)
+
+    try:
+        call(cmd.split())
+    except:
+        return ""
+
+    return "Done!"
 
 if __name__ == '__main__':
     run(host='0.0.0.0', port=8101)

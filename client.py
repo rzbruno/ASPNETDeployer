@@ -36,19 +36,27 @@ def showApplicationByNode():
     except:
         print("Whoa, something went wrong.")
 
+def getUpdatePath():
+    dlls_path = input("Enter with the absolute path of the file dlls.zip.\r\nExample: d:\\projects\\X\\bin\\dlls.zip\r\n\r\n")
+
+    if not os.path.isfile(dlls_path):
+        print("Not a valid absolute path to a file.")
+        return ""
+
+    name, ext = os.path.splitext(dlls_path)
+
+    if ext != '.zip':
+        print("The only accepts extension is .zip")
+        return ""
+
+    return dlls_path
+
 def updateAll():
 
     try:
-        dlls_path = input("Enter with the absolute path of the file dlls.zip.\r\nExample: d:\\projects\\X\\bin\\dlls.zip\r\n\r\n")
+        dlls_path = getUpdatePath()
 
-        if not os.path.isfile(dlls_path):
-            print("Not a valid absolute path to a file.")
-            return
-
-        name, ext = os.path.splitext(dlls_path)
-
-        if ext != '.zip':
-            print("The only accepts extension is .zip")
+        if dlls_path == "":
             return
 
         for key in NODES:
@@ -67,17 +75,55 @@ def updateAll():
     except:
         print("Whoa, something went wrong.")
 
-def updateSingle():
-    print("updateSingle")
+def updateSingle(applicationName=None, dlls_path=None):
+
+    if dlls_path == None:
+        dlls_path = getUpdatePath()
+        if dlls_path == "":
+            return
+
+    if applicationName == None:
+        applicationName = input("Enter with the exact name of the application to update: ")
+
+    for nodeName, nodeIP in NODES.items():
+        request = requests.get("http://" + nodeIP + "/applications").text
+        applications = json.loads(request)
+
+        for k in applications:
+            if applications[k] == applicationName:
+                url = "http://" + nodeIP + ":8101"
+                file = {'upload': open(dlls_path, 'rb')}
+                r = requests.post(url + "/upload", files=file)
+
+                if r.status_code == 200:
+                    r = requests.get(url + "/syncOne?applicationName=" + applicationName)
+                    if r.status_code == 200:
+                        print(applicationName + " synchronized.")
 
 def deployApplication():
-    print("deployApplication")
+    server_name = "Enter with the exact server name: "
+
+    if server_name == "":
+        return
+
+    dlls_path = getUpdatePath()
+
+    if dlls_path == "":
+        return
+
+    applicationName = "Enter with the application name: "
+
+    if applicationName != "":
+        url = "http://" + NODES.get(server_name) + ":8101"
+        r = requests.get(url + "/deployApplication?applicationName=" + applicationName)
+        if r.status_code == 200:
+            updateSingle(applicationName, dlls_path)
 
 if __name__ == '__main__':
 
     if len(NODES) > 0:
 
-        if len(sys.argv) != 2 or sys.argv[1] not in ("1","2","3","4",): cliUsage()
+        if len(sys.argv) != 2 or sys.argv[1] not in ("1","2","3","4","5"): cliUsage()
 
         elif sys.argv[1] == "1": showNodes()
         elif sys.argv[1] == "2": showApplicationByNode()
