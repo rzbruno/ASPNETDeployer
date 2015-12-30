@@ -8,6 +8,16 @@ MASTER = "http://127.0.0.1:8100"
 DLLS_PATH = "C:\\new_dlls\\dlls.zip"
 APPLICATION_PATH = "c:\\inetpub\\wwwroot\\"
 
+''' inside the application path will be:
+application_name/
+    1. Bin
+    2. Queries
+    2.1. Query
+    2.1.1. Id
+    2.2. Store
+    2.2.1. Id'''
+
+
 @route('/')
 def root():
     return "Node up and running!"
@@ -58,12 +68,17 @@ def syncOne():
 @route('/deployApplication')
 def deployApplication():
 
-    name = request.query.applicationName
+    name_app = request.query.applicationName
 
-    cmd = "appcmd add app /site.name: {0} /path: {1} /physicalPath: {2}".format(name, name, APPLICATION_PATH + "\\" + name)
+    cmd_create_pool = 'C:\\Windows\\System32\\inetsrv\\appcmd add apppool /name:{0} /cpu.smpAffinitized:true /processModel.idleTimeout:00:01:00 /processModel.maxProcesses:100 /processModel.shutdownTimeLimit:00:10:00 /processModel.startupTimeLimit:00:10:00 /failure.rapidFailProtection:false'.format(name_app)
+
+    cmd_create_app = 'C:\Windows\\System32\\inetsrv\\appcmd add app /site.name:"Default Web Site" /path:/{0} /physicalPath:{1} /applicationPool:{2}'.format(name_app, APPLICATION_PATH + "\\" + name_app, name_app)
 
     try:
-        call(cmd.split())
+        call(cmd_create_pool.split())
+
+        call(cmd_create_app.split())
+
     except:
         return ""
 

@@ -1,7 +1,7 @@
 from bottle import route, run, response
 import json
 
-NODE_IP = json.loads('{"node1": "0.0.0.0", "node2": "1.1.1.1", "node3": "2.2.2.2"}')
+NODE_IP = json.loads('{"node1": "127.0.0.1"}')
 
 @route('/')
 def root():

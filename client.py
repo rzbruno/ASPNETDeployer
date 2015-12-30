@@ -28,7 +28,7 @@ def showApplicationByNode():
 
     try:
         for nodeName, nodeIP in NODES.items():
-            request = requests.get("http://" + nodeIP + "/applications").text
+            request = requests.get("http://" + nodeIP + ":8101/applications").text
             applications = json.loads(request)
 
             for k in applications:
@@ -60,9 +60,9 @@ def updateAll():
             return
 
         for key in NODES:
-            url = "http://" + NODES[key] + ":8101"
+            url = "http://" + NODES[key] + ":8101/upload"
             file = {'upload': open(dlls_path, 'rb')}
-            r = requests.post(url + "/upload", files=file)
+            r = requests.post(url, files=file)
 
             if r.status_code == 200:
                 r = requests.get(url + "/syncAll")
@@ -86,14 +86,14 @@ def updateSingle(applicationName=None, dlls_path=None):
         applicationName = input("Enter with the exact name of the application to update: ")
 
     for nodeName, nodeIP in NODES.items():
-        request = requests.get("http://" + nodeIP + "/applications").text
+        request = requests.get("http://" + nodeIP + ":8101/applications").text
         applications = json.loads(request)
 
         for k in applications:
             if applications[k] == applicationName:
-                url = "http://" + nodeIP + ":8101"
+                url = "http://" + nodeIP + ":8101/upload"
                 file = {'upload': open(dlls_path, 'rb')}
-                r = requests.post(url + "/upload", files=file)
+                r = requests.post(url, files=file)
 
                 if r.status_code == 200:
                     r = requests.get(url + "/syncOne?applicationName=" + applicationName)
@@ -114,8 +114,7 @@ def deployApplication():
     applicationName = "Enter with the application name: "
 
     if applicationName != "":
-        url = "http://" + NODES.get(server_name) + ":8101"
-        r = requests.get(url + "/deployApplication?applicationName=" + applicationName)
+        r = requests.get("http://" + NODES.get(server_name) + ":8101/deployApplication?applicationName=" + applicationName)
         if r.status_code == 200:
             updateSingle(applicationName, dlls_path)
 
