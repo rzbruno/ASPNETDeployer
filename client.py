@@ -12,7 +12,8 @@ try:
 except:
     print("Ops.. Couldn't retrieve master server.")
 
-def cliUsage():
+
+def cli_usage():
     print("Accepted usage:")
     print("client.py 1: show available nodes")
     print("client.py 2: show applications by nodes")
@@ -20,11 +21,14 @@ def cliUsage():
     print("client.py 4: update single <application name>")
     print("client.py 5: deploy <application name>")
 
-def showNodes():
+
+def show_nodes():
+
     for key,value in NODES.items():
         print("{}:{}".format(key,value))
 
-def showApplicationByNode():
+
+def show_application_by_node():
 
     try:
         for nodeName, nodeIP in NODES.items():
@@ -36,7 +40,8 @@ def showApplicationByNode():
     except:
         print("Whoa, something went wrong.")
 
-def getUpdatePath():
+
+def get_update_path():
     dlls_path = input("Enter with the absolute path of the file dlls.zip.\r\nExample: d:\\projects\\X\\bin\\dlls.zip\r\n\r\n")
 
     if not os.path.isfile(dlls_path):
@@ -51,10 +56,11 @@ def getUpdatePath():
 
     return dlls_path
 
-def updateAll():
+
+def update_all():
 
     try:
-        dlls_path = getUpdatePath()
+        dlls_path = get_update_path()
 
         if dlls_path == "":
             return
@@ -75,14 +81,15 @@ def updateAll():
     except:
         print("Whoa, something went wrong.")
 
-def updateSingle(applicationName=None, dlls_path=None):
 
-    if dlls_path == None:
-        dlls_path = getUpdatePath()
+def update_single(applicationName=None, dlls_path=None):
+
+    if dlls_path is None:
+        dlls_path = get_update_path()
         if dlls_path == "":
             return
 
-    if applicationName == None:
+    if applicationName is None:
         applicationName = input("Enter with the exact name of the application to update: ")
 
     for nodeName, nodeIP in NODES.items():
@@ -97,16 +104,19 @@ def updateSingle(applicationName=None, dlls_path=None):
 
                 if r.status_code == 200:
                     r = requests.get(url + "/syncOne?applicationName=" + applicationName)
-                    if r.status_code == 200:
-                        print(applicationName + " synchronized.")
+                    print("The {0} {1} synchronized.".format(applicationName, "was" if r.status_code == 200 else "was not"))
+                else:
+                    print("The upload was found, but upload has failed: Return: {0} - {1}".format(r.status_code, r.text))
 
-def deployApplication():
+
+def deploy_application():
+
     server_name = "Enter with the exact server name: "
 
     if server_name == "":
         return
 
-    dlls_path = getUpdatePath()
+    dlls_path = get_update_path()
 
     if dlls_path == "":
         return
@@ -116,17 +126,17 @@ def deployApplication():
     if applicationName != "":
         r = requests.get("http://" + NODES.get(server_name) + ":8101/deployApplication?applicationName=" + applicationName)
         if r.status_code == 200:
-            updateSingle(applicationName, dlls_path)
+            update_single(applicationName, dlls_path)
 
 if __name__ == '__main__':
 
     if len(NODES) > 0:
 
-        if len(sys.argv) != 2 or sys.argv[1] not in ("1","2","3","4","5"): cliUsage()
+        if len(sys.argv) != 2 or sys.argv[1] not in ("1","2","3","4","5"): cli_usage()
 
-        elif sys.argv[1] == "1": showNodes()
-        elif sys.argv[1] == "2": showApplicationByNode()
-        elif sys.argv[1] == "3": updateAll()
-        elif sys.argv[1] == "4": updateSingle()
-        elif sys.argv[1] == "5": deployApplication()
+        elif sys.argv[1] == "1": show_nodes()
+        elif sys.argv[1] == "2": show_application_by_node()
+        elif sys.argv[1] == "3": update_all()
+        elif sys.argv[1] == "4": update_single()
+        elif sys.argv[1] == "5": deploy_application()
 
